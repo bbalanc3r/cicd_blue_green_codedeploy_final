@@ -15,7 +15,7 @@ Type=simple
 User=ec2-user
 WorkingDirectory=$APP_DIR
 Environment="PATH=$VENV_DIR/bin"
-ExecStart=$VENV_DIR/bin/python app.py
+ExecStart=$VENV_DIR/bin/python application.py
 Restart=on-failure
 RestartSec=5
 
