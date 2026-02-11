@@ -1,9 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Stop and disable service if it exists
-systemctl stop flask-app.service 2>/dev/null || true
-systemctl disable flask-app.service 2>/dev/null || true
+APP_DIR="/var/www/app"
+VENV_DIR="$APP_DIR/venv"
 
-# Kill any process on port 8000
-lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+# Create systemd service file
+cat > /etc/systemd/system/flask-app.service << EOF
+[Unit]
+Description=Flask Application
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=$APP_DIR
+Environment="PATH=$VENV_DIR/bin"
+ExecStart=$VENV_DIR/bin/python app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Set permissions
+chown -R ec2-user:ec2-user "$APP_DIR"
+
+# Start service
+systemctl daemon-reload
+systemctl enable flask-app.service
+systemctl restart flask-app.service
